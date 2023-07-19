@@ -304,8 +304,8 @@ impl Source for ConnectorSource {
                         }
                         None
                     }
-                    IngestionMessageKind::SnapshotBatch(batch) => {
-                        Some(get_schema_id(new.schema_id)?)
+                    IngestionMessageKind::SnapshotBatch { batch, schema_id } => {
+                        Some(get_schema_id(schema_id)?)
                     }
                 };
                 if let Some(schema_id) = schema_id {

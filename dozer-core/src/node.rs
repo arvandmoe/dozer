@@ -1,12 +1,14 @@
 use crate::channels::{ProcessorChannelForwarder, SourceChannelForwarder};
 
 use dozer_types::arrow::record_batch::RecordBatch;
+use dozer_types::arrow_types::from_arrow::{
+    map_record_batch_to_dozer_records, map_schema_to_dozer,
+};
 use dozer_types::epoch::Epoch;
 use dozer_types::errors::internal::BoxedError;
 use dozer_types::types::{Operation, Schema};
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
-
 pub type PortHandle = u16;
 
 #[derive(Debug, Clone, Copy)]
@@ -48,9 +50,6 @@ pub trait SourceFactory<T>: Send + Sync + Debug {
 }
 
 pub trait Source: Send + Sync + Debug {
-    /// Takes a snapshot of the source in the form of `RecordBatch`es and sends them to `fw`.
-    fn snapshot(&self, fw: &mut dyn SourceChannelForwarder) -> Result<(), BoxedError>;
-
     /// Checks if the source can start from the given checkpoint.
     /// If this function returns false, the executor will start the source from the beginning.
     fn can_start_from(&self, last_checkpoint: (u64, u64)) -> Result<bool, BoxedError>;
@@ -111,7 +110,18 @@ pub trait Sink: Send + Sync + Debug {
         &mut self,
         from_port: PortHandle,
         batch: RecordBatch,
-    ) -> Result<(), BoxedError>;
+    ) -> Result<(), BoxedError> {
+        let schema = batch.schema();
+        let schema = map_schema_to_dozer(&schema)?;
+        let records = map_record_batch_to_dozer_records(batch, &schema)
+            .map_err(|e| Box::new(e) as BoxedError)?;
+
+        for rec in records {
+            self.process(from_port, Operation::Insert { new: rec })?;
+        }
+
+        Ok(())
+    }
 
     fn commit(&mut self, epoch_details: &Epoch) -> Result<(), BoxedError>;
     fn process(&mut self, from_port: PortHandle, op: Operation) -> Result<(), BoxedError>;

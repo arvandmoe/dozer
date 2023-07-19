@@ -1,3 +1,4 @@
+use dozer_types::arrow_types::from_arrow::map_schema_to_dozer;
 use dozer_types::ingestion_types::{IngestionMessage, IngestionMessageKind};
 use futures::future::join_all;
 use std::collections::HashMap;
@@ -128,10 +129,10 @@ impl<T: DozerObjectStore> Connector for ObjectStoreConnector<T> {
                                     .map_err(ConnectorError::IngestorError)
                                     .unwrap();
                             }
-                            IngestionMessageKind::SnapshotBatch(batch) => {
+                            IngestionMessageKind::SnapshotBatch { batch, schema_id } => {
                                 ingestor_clone
                                     .handle_message(IngestionMessage::new_snapshot_batch(
-                                        0, seq_no, batch,
+                                        0, seq_no, batch, schema_id,
                                     ))
                                     .map_err(ConnectorError::IngestorError)
                                     .unwrap();

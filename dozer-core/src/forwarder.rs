@@ -247,7 +247,10 @@ impl SourceChannelManager {
         self.curr_txid = message.identifier.txid;
         self.curr_seq_in_tx = message.identifier.seq_in_tx;
         match message.kind {
-            IngestionMessageKind::SnapshotBatch(batch) => {
+            IngestionMessageKind::SnapshotBatch {
+                batch,
+                schema_id: _,
+            } => {
                 self.manager.send_op(batch.into(), port)?;
                 self.trigger_commit_if_needed(request_termination)
             }

@@ -165,6 +165,10 @@ mod tests {
             self.snapshotting_done.push(connection_name);
             Ok(())
         }
+
+        fn on_batch(&mut self, index: usize, batch: RecordBatch) -> Result<(), ExecutionError> {
+            todo!()
+        }
     }
 
     impl TestReceiverLoop {

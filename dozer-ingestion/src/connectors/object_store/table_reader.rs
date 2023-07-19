@@ -78,8 +78,17 @@ impl<T: Clone + Send + Sync> TableReader<T> {
                 }
             };
 
+            let batch_schema = batch.schema();
+            let dozer_schema = map_schema_to_dozer(&batch_schema)?;
+
             sender
-                .send(Ok(Some(IngestionMessageKind::SnapshotBatch(batch))))
+                .send(Ok(Some(IngestionMessageKind::SnapshotBatch {
+                    batch,
+                    schema_id: dozer_schema
+                        .identifier
+                        .expect("schema_id is expected while ingesting")
+                        .id,
+                })))
                 .await
                 .unwrap();
         }
