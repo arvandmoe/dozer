@@ -304,9 +304,7 @@ impl Source for ConnectorSource {
                         }
                         None
                     }
-                    IngestionMessageKind::SnapshotBatch { batch, schema_id } => {
-                        Some(get_schema_id(schema_id)?)
-                    }
+                    IngestionMessageKind::SnapshotBatch { batch, schema_id } => Some(*schema_id),
                 };
                 if let Some(schema_id) = schema_id {
                     let (port, table_name) = self
@@ -357,10 +355,6 @@ impl Source for ConnectorSource {
 
             Ok(())
         })
-    }
-
-    fn snapshot(&self, fw: &mut dyn SourceChannelForwarder) -> Result<(), BoxedError> {
-        Ok(())
     }
 }
 
