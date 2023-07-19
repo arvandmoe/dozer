@@ -17,10 +17,10 @@ pub struct IngestionMessage {
 }
 
 impl IngestionMessage {
-    pub fn new_snapshot_batch(txn: u64, seq_no: u64, batch: RecordBatch) -> Self {
+    pub fn new_snapshot_batch(txn: u64, seq_no: u64, schema_id: u64, batch: RecordBatch) -> Self {
         Self {
             identifier: OpIdentifier::new(txn, seq_no),
-            kind: IngestionMessageKind::SnapshotBatch(batch),
+            kind: IngestionMessageKind::SnapshotBatch { schema_id, batch },
         }
     }
 
@@ -50,7 +50,7 @@ impl IngestionMessage {
 /// All possible kinds of `IngestionMessage`.
 pub enum IngestionMessageKind {
     /// A snapshot batch.
-    SnapshotBatch(RecordBatch),
+    SnapshotBatch { schema_id: u64, batch: RecordBatch },
     /// A CDC event.
     OperationEvent(Operation),
     /// A connector uses this message kind to notify Dozer that a initial snapshot of the source tables is started

@@ -305,16 +305,7 @@ impl Source for ConnectorSource {
                         None
                     }
                     IngestionMessageKind::SnapshotBatch(batch) => {
-                        for (port, _) in self.schema_port_map.values() {
-                            fw.send(
-                                IngestionMessage {
-                                    identifier,
-                                    kind: kind.clone(),
-                                },
-                                *port,
-                            )?;
-                        }
-                        None
+                        Some(get_schema_id(new.schema_id)?)
                     }
                 };
                 if let Some(schema_id) = schema_id {
